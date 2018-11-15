@@ -1,5 +1,5 @@
 import bimobjService from 'spinal-env-viewer-plugin-bimobjectservice';
-import circularMenuVue from 'spinal-env-viewer-plugin-circularmenugraph/circularMenu.vue'
+import circularMenuVue from 'spinal-env-viewer-plugin-circular-menu/circularMenu.vue'
 import Vue from 'vue'
 const circularComponentCtor = Vue.extend(circularMenuVue);
 const {
