@@ -10,21 +10,63 @@ const {
 var circularMenu = class circularMenu {
   constructor(viewer) {
     this.viewer = viewer;
+    this.evt = {
+      timeout: null,
+      data: null,
+      canvas: false,
+      selected: false,
+      x: 0,
+      y: 0
+    };
+    viewer.clientContainer.addEventListener("click",
+      (evt) => {
+        this.close();
+        if (evt.target instanceof HTMLCanvasElement)
+          this.onEvt("canvas")
+      }
+    );
+    viewer.addEventListener(
+      Autodesk.Viewing.ESCAPE_EVENT,
+      (e) => {
+        this.close();
+      })
     viewer.addEventListener(
       Autodesk.Viewing.SELECTION_CHANGED_EVENT,
       (e) => {
-        this.onSelectionChange.call(this, e)
+        this.evt.x = event.clientX;
+        this.evt.y = event.clientY;
+        this.evt.data = e;
+        this.close();
+        this.onEvt("selected")
+        // this.onSelectionChange.call(this, e)
       }
     );
   }
 
+  onEvt(evtFrom) {
+    if (evtFrom === "canvas" || evtFrom === "selected") {
+      this.evt[evtFrom] = true;
+      if (this.evt.canvas === true && this.evt.selected === true) {
+        this.onSelectionChange(this.evt.data);
+        this.evt.canvas = false;
+        this.evt.selected = false;
+        if (this.evt.timeout !== null)
+          clearInterval(this.evt.timeout)
+        this.evt.timeout = null;
+      } else if (this.evt.timeout == null)
+        this.evt.timeout = setTimeout(() => {
+          this.evt.canvas = false;
+          this.evt.selected = false;
+          this.evt.timeout = null;
+        }, 200);
+    }
+  }
+
   async onSelectionChange(data) {
-    console.log('selection change');
-    console.log(data);
-    var x = event.clientX;
-    var y = event.clientY;
-    console.log(x, y)
     if (data.dbIdArray.length == 1) {
+      var x = this.evt.x;
+      var y = this.evt.y;
+
       let dbId = data.dbIdArray[0];
       let myNode = await bimobjService.getBIMObject(
         data.dbIdArray[0]
@@ -37,17 +79,18 @@ var circularMenu = class circularMenu {
         }
         this.open(await this.getButtonList(objContextMenuService), x, y);
       } else {
-        let myNode = await bimobjService.createBIMObject(data.dbIdArray[0],
-          this
-          .viewer.model.getData()
-          .instanceTree.getNodeName(data
-            .dbIdArray[0])
-        )
+        // let myNode = await bimobjService.createBIMObject(data.dbIdArray[0],
+        //   this
+        //   .viewer.model.getData()
+        //   .instanceTree.getNodeName(data
+        //     .dbIdArray[0])
+        // )
         let objContextMenuService = {
           exist: false,
           dbId: dbId
         }
-        this.open(await this.getButtonList(objContextMenuService), x, y);
+        let btnList = await this.getButtonList(objContextMenuService);
+        this.open(btnList, x, y);
       }
     } else {
       this.close();
@@ -61,28 +104,30 @@ var circularMenu = class circularMenu {
       });
   }
   mount() {
-    console.log('mount');
     bimobjService.getGraph();
   }
   open(buttonList, x, y) {
-    if (this.container != undefined) {
-      this.close();
+    if (this.close() == false) {
+      this.container = document.createElement("div");
+      document.body.append(this.container);
+      let mySmallContainer = document.createElement("div")
+      this.container.append(mySmallContainer);
+      this.circularCtor = new circularComponentCtor({
+        propsData: {
+          buttonList: buttonList,
+          x: x,
+          y: y
+        }
+      }).$mount(mySmallContainer);
     }
-    console.log(buttonList);
-    this.container = document.createElement("div");
-    document.body.append(this.container);
-    let mySmallContainer = document.createElement("div")
-    this.container.append(mySmallContainer);
-    this.circularCtor = new circularComponentCtor({
-      propsData: {
-        buttonList: buttonList,
-        x: x,
-        y: y
-      }
-    }).$mount(mySmallContainer);
   }
   close() {
-    this.container.remove();
+    if (this.container != undefined) {
+      this.container.remove();
+      this.container = undefined
+      return true;
+    }
+    return false;
   }
 };
 module.exports.circularMenu = circularMenu;
