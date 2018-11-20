@@ -1,6 +1,6 @@
-import bimobjService from 'spinal-env-viewer-plugin-bimobjectservice';
-import circularMenuVue from 'spinal-env-viewer-plugin-circular-menu/circularMenu.vue'
-import Vue from 'vue'
+import bimobjService from "spinal-env-viewer-plugin-bimobjectservice";
+import circularMenuVue from "spinal-env-viewer-plugin-circular-menu/circularMenu.vue";
+import Vue from "vue";
 const circularComponentCtor = Vue.extend(circularMenuVue);
 const {
   spinalContextMenuService,
@@ -18,29 +18,21 @@ var circularMenu = class circularMenu {
       x: 0,
       y: 0
     };
-    viewer.clientContainer.addEventListener("click",
-      (evt) => {
-        this.close();
-        if (evt.target instanceof HTMLCanvasElement)
-          this.onEvt("canvas")
-      }
-    );
-    viewer.addEventListener(
-      Autodesk.Viewing.ESCAPE_EVENT,
-      (e) => {
-        this.close();
-      })
-    viewer.addEventListener(
-      Autodesk.Viewing.SELECTION_CHANGED_EVENT,
-      (e) => {
-        this.evt.x = event.clientX;
-        this.evt.y = event.clientY;
-        this.evt.data = e;
-        this.close();
-        this.onEvt("selected")
-        // this.onSelectionChange.call(this, e)
-      }
-    );
+    viewer.clientContainer.addEventListener("click", evt => {
+      this.close();
+      if (evt.target instanceof HTMLCanvasElement) this.onEvt("canvas");
+    });
+    viewer.addEventListener(Autodesk.Viewing.ESCAPE_EVENT, e => {
+      this.close();
+    });
+    viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, e => {
+      this.evt.x = event.clientX;
+      this.evt.y = event.clientY;
+      this.evt.data = e;
+      this.close();
+      this.onEvt("selected");
+      // this.onSelectionChange.call(this, e)
+    });
   }
 
   onEvt(evtFrom) {
@@ -50,8 +42,7 @@ var circularMenu = class circularMenu {
         this.onSelectionChange(this.evt.data);
         this.evt.canvas = false;
         this.evt.selected = false;
-        if (this.evt.timeout !== null)
-          clearInterval(this.evt.timeout)
+        if (this.evt.timeout !== null) clearInterval(this.evt.timeout);
         this.evt.timeout = null;
       } else if (this.evt.timeout == null)
         this.evt.timeout = setTimeout(() => {
@@ -68,16 +59,19 @@ var circularMenu = class circularMenu {
       var y = this.evt.y;
 
       let dbId = data.dbIdArray[0];
-      let myNode = await bimobjService.getBIMObject(
-        data.dbIdArray[0]
-      );
+      let myNode = await bimobjService.getBIMObject(data.dbIdArray[0]);
       if (myNode != undefined) {
         let objContextMenuService = {
           exist: true,
           BIMObjectNode: myNode,
           dbId: dbId
-        }
-        this.open(await this.getButtonList(objContextMenuService), x, y);
+        };
+        this.open(
+          await this.getButtonList(objContextMenuService),
+          x,
+          y,
+          objContextMenuService
+        );
       } else {
         // let myNode = await bimobjService.createBIMObject(data.dbIdArray[0],
         //   this
@@ -88,9 +82,9 @@ var circularMenu = class circularMenu {
         let objContextMenuService = {
           exist: false,
           dbId: dbId
-        }
+        };
         let btnList = await this.getButtonList(objContextMenuService);
-        this.open(btnList, x, y);
+        this.open(btnList, x, y, objContextMenuService);
       }
     } else {
       this.close();
@@ -99,24 +93,25 @@ var circularMenu = class circularMenu {
   getButtonList(objContextMenuService) {
     return spinalContextMenuService
       .getApps("circularMenu", objContextMenuService)
-      .then((buttonList) => {
+      .then(buttonList => {
         return buttonList;
       });
   }
   mount() {
     bimobjService.getGraph();
   }
-  open(buttonList, x, y) {
+  open(buttonList, x, y, objContextMenuService) {
     if (this.close() == false) {
       this.container = document.createElement("div");
       document.body.append(this.container);
-      let mySmallContainer = document.createElement("div")
+      let mySmallContainer = document.createElement("div");
       this.container.append(mySmallContainer);
       this.circularCtor = new circularComponentCtor({
         propsData: {
           buttonList: buttonList,
           x: x,
-          y: y
+          y: y,
+          options: objContextMenuService
         }
       }).$mount(mySmallContainer);
     }
@@ -124,7 +119,7 @@ var circularMenu = class circularMenu {
   close() {
     if (this.container != undefined) {
       this.container.remove();
-      this.container = undefined
+      this.container = undefined;
       return true;
     }
     return false;
