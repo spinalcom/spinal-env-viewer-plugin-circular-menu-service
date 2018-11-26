@@ -63,7 +63,7 @@ var circularMenu = class circularMenu {
       if (myNode != undefined) {
         let objContextMenuService = {
           exist: true,
-          BIMObjectNode: myNode,
+          selectedNode: myNode,
           dbId: dbId
         };
         this.open(
