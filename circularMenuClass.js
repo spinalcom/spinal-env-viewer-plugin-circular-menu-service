@@ -64,7 +64,7 @@ var circularMenu = class circularMenu {
         let objContextMenuService = {
           exist: true,
           selectedNode: myNode,
-          dbId: dbId
+          dbid: dbId
         };
         this.open(
           await this.getButtonList(objContextMenuService),
@@ -81,7 +81,7 @@ var circularMenu = class circularMenu {
         // )
         let objContextMenuService = {
           exist: false,
-          dbId: dbId
+          dbid: dbId
         };
         let btnList = await this.getButtonList(objContextMenuService);
         this.open(btnList, x, y, objContextMenuService);
