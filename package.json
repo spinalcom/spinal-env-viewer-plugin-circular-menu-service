@@ -11,9 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "spinal-env-viewer-context-menu-service": "git+https://github.com/spinalcom/spinal-env-viewer-context-menu-service.git",
-    "spinal-env-viewer-panel-manager-service_spinalforgeextention": "git+https://github.com/spinalcom/spinal-env-viewer-panel-manager-service_spinalforgeextention.git",
     "spinal-env-viewer-plugin-bimobjectservice": "git+https://github.com/spinalcom/spinal-env-viewer-plugin-bimobjectservice.git",
-     "spinalgraph": "git+https://github.com/spinalcom/spinal-model-graph.git#v01",
     "vue": "^2.0.1"
   }
 }
