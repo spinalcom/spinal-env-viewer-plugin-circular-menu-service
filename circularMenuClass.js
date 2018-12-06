@@ -3,8 +3,7 @@ import circularMenuVue from "spinal-env-viewer-plugin-circular-menu/circularMenu
 import Vue from "vue";
 const circularComponentCtor = Vue.extend(circularMenuVue);
 const {
-  spinalContextMenuService,
-  SpinalContextApp
+  spinalContextMenuService
 } = require("spinal-env-viewer-context-menu-service");
 
 var circularMenu = class circularMenu {
@@ -25,14 +24,15 @@ var circularMenu = class circularMenu {
     viewer.addEventListener(Autodesk.Viewing.ESCAPE_EVENT, e => {
       this.close();
     });
-    viewer.addEventListener(Autodesk.Viewing.SELECTION_CHANGED_EVENT, e => {
-      this.evt.x = event.clientX;
-      this.evt.y = event.clientY;
-      this.evt.data = e;
-      this.close();
-      this.onEvt("selected");
-      // this.onSelectionChange.call(this, e)
-    });
+    viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
+      e => {
+        this.evt.x = event.clientX;
+        this.evt.y = event.clientY;
+        this.evt.data = e.selections;
+        this.close();
+        this.onEvt("selected");
+        // this.onSelectionChange.call(this, e)
+      });
   }
 
   onEvt(evtFrom) {
@@ -44,22 +44,24 @@ var circularMenu = class circularMenu {
         this.evt.selected = false;
         if (this.evt.timeout !== null) clearInterval(this.evt.timeout);
         this.evt.timeout = null;
-      } else if (this.evt.timeout == null)
+      } else if (this.evt.timeout == null) {
         this.evt.timeout = setTimeout(() => {
           this.evt.canvas = false;
           this.evt.selected = false;
           this.evt.timeout = null;
         }, 200);
+      }
     }
   }
 
   async onSelectionChange(data) {
-    if (data.dbIdArray.length == 1) {
+    if (data.length === 1 && data[0].dbIdArray.length === 1) {
       var x = this.evt.x;
       var y = this.evt.y;
 
-      let dbId = data.dbIdArray[0];
-      let myNode = await bimobjService.getBIMObject(data.dbIdArray[0]);
+      let dbId = data[0].dbIdArray[0];
+      let myNode = await bimobjService.getBIMObject(data[0].dbIdArray[0],
+        data[0].model);
       if (myNode != undefined) {
         let objContextMenuService = {
           exist: true,
@@ -81,7 +83,8 @@ var circularMenu = class circularMenu {
         // )
         let objContextMenuService = {
           exist: false,
-          dbid: dbId
+          dbid: dbId,
+          model3d: data[0].model
         };
         let btnList = await this.getButtonList(objContextMenuService);
         this.open(btnList, x, y, objContextMenuService);
