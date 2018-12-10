@@ -66,7 +66,8 @@ var circularMenu = class circularMenu {
         let objContextMenuService = {
           exist: true,
           selectedNode: myNode,
-          dbid: dbId
+          dbid: dbId,
+          model3d: data[0].model
         };
         this.open(
           await this.getButtonList(objContextMenuService),
