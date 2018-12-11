@@ -65,7 +65,7 @@ var circularMenu = class circularMenu {
       if (myNode != undefined) {
         let objContextMenuService = {
           exist: true,
-          selectedNode: myNode,
+          info: myNode,
           dbid: dbId,
           model3d: data[0].model
         };
