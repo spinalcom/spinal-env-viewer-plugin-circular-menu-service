@@ -21,6 +21,13 @@ var circularMenu = class circularMenu {
       this.close();
       if (evt.target instanceof HTMLCanvasElement) this.onEvt("canvas");
     });
+    viewer.clientContainer.addEventListener("DynamicObjectClick", evt => {
+      this.close();
+      this.evt.x = event.x;
+      this.evt.y = event.y;
+      this.evt.data = event;
+      this.onEvt("dynamic");
+    });
     viewer.addEventListener(Autodesk.Viewing.ESCAPE_EVENT, e => {
       this.close();
     });
@@ -34,9 +41,8 @@ var circularMenu = class circularMenu {
         // this.onSelectionChange.call(this, e)
       });
   }
-
   onEvt(evtFrom) {
-    if (evtFrom === "canvas" || evtFrom === "selected") {
+    if (evtFrom === "canvas" || evtFrom === "selected" || evtFrom == "dynamic") {
       this.evt[evtFrom] = true;
       if (this.evt.canvas === true && this.evt.selected === true) {
         this.onSelectionChange(this.evt.data);
@@ -45,7 +51,7 @@ var circularMenu = class circularMenu {
         if (this.evt.timeout !== null) clearInterval(this.evt.timeout);
         this.evt.timeout = null;
       } else if (this.evt.timeout == null) {
-        this.evt.timeout = setTimeout(() => {
+          this.evt.timeout = setTimeout(() => {
           this.evt.canvas = false;
           this.evt.selected = false;
           this.evt.timeout = null;
@@ -53,12 +59,10 @@ var circularMenu = class circularMenu {
       }
     }
   }
-
   async onSelectionChange(data) {
     if (data.length === 1 && data[0].dbIdArray.length === 1) {
       var x = this.evt.x;
       var y = this.evt.y;
-
       let dbId = data[0].dbIdArray[0];
       let myNode = await bimobjService.getBIMObject(data[0].dbIdArray[0],
         data[0].model);
@@ -87,9 +91,18 @@ var circularMenu = class circularMenu {
           dbid: dbId,
           model3d: data[0].model
         };
+
         let btnList = await this.getButtonList(objContextMenuService);
         this.open(btnList, x, y, objContextMenuService);
       }
+    } else if (data.is === "dynamic") {
+      let objContextMenuService = {
+          exist: true,
+          selectedNode: data.returnObj.node,
+          model3d: data.returnObj.model
+        };
+        let btnList = await this.getButtonList(objContextMenuService);
+        this.open(btnList, data.x, data.y, objContextMenuService);
     } else {
       this.close();
     }
