@@ -23,8 +23,13 @@ var circularMenu = class circularMenu {
     });
     viewer.clientContainer.addEventListener("DynamicObjectClick", evt => {
       this.close();
-      this.evt.x = event.x;
-      this.evt.y = event.y;
+      try {
+        this.evt.x = event.x;
+        this.evt.y = event.y;
+      } catch (e) {
+        this.evt.x = window.innerWidth / 2
+        this.evt.y = window.innerHeight / 2
+      }
       this.evt.data = event;
       this.onEvt("dynamic");
     });
@@ -33,8 +38,13 @@ var circularMenu = class circularMenu {
     });
     viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
       e => {
-        this.evt.x = event.clientX;
-        this.evt.y = event.clientY;
+        try {
+          this.evt.x = event.x;
+          this.evt.y = event.y;
+        } catch (e) {
+          this.evt.x = window.innerWidth / 2
+          this.evt.y = window.innerHeight / 2
+        }
         this.evt.data = e.selections;
         this.close();
         this.onEvt("selected");
