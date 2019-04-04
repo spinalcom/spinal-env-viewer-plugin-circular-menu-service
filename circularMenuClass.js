@@ -14,21 +14,34 @@ var circularMenu = class circularMenu {
       data: null,
       canvas: false,
       selected: false,
+      xTouch: window.innerWidth / 2,
+      yTouch: window.innerHeight / 2,
       x: 0,
-      y: 0
+      y: 0,
     };
     viewer.clientContainer.addEventListener("click", evt => {
       this.close();
       if (evt.target instanceof HTMLCanvasElement) this.onEvt("canvas");
     });
+    const defaultSingleTapHandler = viewer.clickHandler.handleSingleTap
+    viewer.clickHandler.handleSingleTap = evt => {
+      this.close();
+      if (evt.target instanceof HTMLCanvasElement) {
+        this.evt.xTouch = evt.center.x;
+        this.evt.yTouch = evt.center.y;
+        this.onEvt("canvas");
+      }
+      defaultSingleTapHandler(evt);
+    };
+
     viewer.clientContainer.addEventListener("DynamicObjectClick", evt => {
       this.close();
       try {
         this.evt.x = event.x;
         this.evt.y = event.y;
       } catch (e) {
-        this.evt.x = window.innerWidth / 2
-        this.evt.y = window.innerHeight / 2
+        this.evt.x = this.evt.xTouch;
+        this.evt.y = this.evt.yTouch;
       }
       this.evt.data = event;
       this.onEvt("dynamic");
@@ -36,14 +49,16 @@ var circularMenu = class circularMenu {
     viewer.addEventListener(Autodesk.Viewing.ESCAPE_EVENT, e => {
       this.close();
     });
-    viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
+    viewer.addEventListener(Autodesk.Viewing
+      .AGGREGATE_SELECTION_CHANGED_EVENT,
       e => {
         try {
           this.evt.x = event.x;
           this.evt.y = event.y;
         } catch (e) {
-          this.evt.x = window.innerWidth / 2
-          this.evt.y = window.innerHeight / 2
+          this.evt.x = this.evt.xTouch;
+          this.evt.y = this.evt.yTouch;
+
         }
         this.evt.data = e.selections;
         this.close();
@@ -52,7 +67,8 @@ var circularMenu = class circularMenu {
       });
   }
   onEvt(evtFrom) {
-    if (evtFrom === "canvas" || evtFrom === "selected" || evtFrom == "dynamic") {
+    if (evtFrom === "canvas" || evtFrom === "selected" || evtFrom ==
+      "dynamic") {
       this.evt[evtFrom] = true;
       if (this.evt.canvas === true && this.evt.selected === true) {
         this.onSelectionChange(this.evt.data);
@@ -61,7 +77,7 @@ var circularMenu = class circularMenu {
         if (this.evt.timeout !== null) clearInterval(this.evt.timeout);
         this.evt.timeout = null;
       } else if (this.evt.timeout == null) {
-          this.evt.timeout = setTimeout(() => {
+        this.evt.timeout = setTimeout(() => {
           this.evt.canvas = false;
           this.evt.selected = false;
           this.evt.timeout = null;
@@ -107,12 +123,12 @@ var circularMenu = class circularMenu {
       }
     } else if (data.is === "dynamic") {
       let objContextMenuService = {
-          exist: true,
-          selectedNode: data.returnObj.node,
-          model3d: data.returnObj.model
-        };
-        let btnList = await this.getButtonList(objContextMenuService);
-        this.open(btnList, data.x, data.y, objContextMenuService);
+        exist: true,
+        selectedNode: data.returnObj.node,
+        model3d: data.returnObj.model
+      };
+      let btnList = await this.getButtonList(objContextMenuService);
+      this.open(btnList, data.x, data.y, objContextMenuService);
     } else {
       this.close();
     }
