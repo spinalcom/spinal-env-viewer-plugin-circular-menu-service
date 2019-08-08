@@ -20,9 +20,8 @@ var circularMenu = class circularMenu {
       y: 0,
     };
 
-    viewer.addEventListener(window.Autodesk.Viewing.TOOLBAR_CREATED_EVENT, eventListener)
 
-    function eventListener() {
+    const eventListener = () => {
       viewer.removeEventListener(window.Autodesk.Viewing.TOOLBAR_CREATED_EVENT, eventListener)
 
       viewer.clientContainer.addEventListener("click", evt => {
@@ -74,6 +73,7 @@ var circularMenu = class circularMenu {
           // this.onSelectionChange.call(this, e)
         });
     };
+    viewer.addEventListener(window.Autodesk.Viewing.TOOLBAR_CREATED_EVENT, eventListener)
 
   }
   onEvt(evtFrom) {
