@@ -104,23 +104,31 @@ var circularMenu = class circularMenu {
       // let myNode = await window.spinal.BimObjectService();
       // console.log("hello bimobject");
       // console.log(data)
-      let myNode = await window.spinal.BimObjectService.getBIMObject(data[0]
+      let bimObj = await window.spinal.BimObjectService.getBIMObject(data[0]
         .dbIdArray[0],
         data[0].model);
-      if (myNode != undefined) {
+        let myNode
+        if (bimObj) {
+          spinal.spinalGraphService._addNode(bimObj);
+          myNode = spinal.spinalGraphService.getNode(bimObj.info.id.get());
+        }
+
+        if (bimObj !== undefined && myNode !== undefined) {
+
+          // let myNode = spinal.spinalGraphService.getNode(bimObj.info.id.get());
         let objContextMenuService = {
           exist: true,
           selectedNode: myNode,
           dbid: dbId,
           model3d: data[0].model
         };
-        this.open(
+       return this.open(
           await this.getButtonList(objContextMenuService),
           x,
           y,
           objContextMenuService
         );
-      } else {
+      } 
         // let myNode = await bimobjService.createBIMObject(data.dbIdArray[0],
         //   this
         //   .viewer.model.getData()
@@ -135,7 +143,6 @@ var circularMenu = class circularMenu {
 
         let btnList = await this.getButtonList(objContextMenuService);
         this.open(btnList, x, y, objContextMenuService);
-      }
     } else if (data.is === "dynamic") {
       let objContextMenuService = {
         exist: true,
