@@ -1,10 +1,36 @@
-// import bimobjService from "spinal-env-viewer-plugin-bimobjectservice";
+/*
+ * Copyright 2020 SpinalCom - www.spinalcom.com
+ *
+ * This file is part of SpinalCore.
+ *
+ * Please read all of the following terms and conditions
+ * of the Free Software license Agreement ("Agreement")
+ * carefully.
+ *
+ * This Agreement is a legally binding contract between
+ * the Licensee (as defined below) and SpinalCom that
+ * sets forth the terms and conditions that govern your
+ * use of the Program. By installing and/or using the
+ * Program, you agree to abide by all the terms and
+ * conditions stated or referenced herein.
+ *
+ * If you do not agree to abide by these terms and
+ * conditions, do not demonstrate your acceptance and do
+ * not install or use the Program.
+ * You should have received a copy of the license along
+ * with this file. If not, see
+ * <http://resources.spinalcom.com/licenses.pdf>.
+ */
+
 import circularMenuVue from "spinal-env-viewer-plugin-circular-menu/circularMenu.vue";
 import Vue from "vue";
+import { SpinalNode } from "spinal-env-viewer-graph-service";
 const circularComponentCtor = Vue.extend(circularMenuVue);
 const {
   spinalContextMenuService
 } = require("spinal-env-viewer-context-menu-service");
+
+const Autodesk = window.Autodesk;
 
 var circularMenu = class circularMenu {
   constructor(viewer) {
@@ -17,20 +43,22 @@ var circularMenu = class circularMenu {
       xTouch: window.innerWidth / 2,
       yTouch: window.innerHeight / 2,
       x: 0,
-      y: 0,
+      y: 0
     };
 
 
     const eventListener = () => {
-      viewer.removeEventListener(window.Autodesk.Viewing.TOOLBAR_CREATED_EVENT, eventListener)
+      viewer.removeEventListener(window.Autodesk.Viewing.TOOLBAR_CREATED_EVENT, eventListener);
 
       viewer.clientContainer.addEventListener("click", evt => {
         this.close();
-        if (evt.target instanceof HTMLCanvasElement) this.onEvt(
-          "canvas");
+        if (evt.target instanceof HTMLCanvasElement) {
+          this.onEvt(
+            "canvas");
+        }
       });
       const defaultSingleTapHandler = viewer.clickHandler
-        .handleSingleTap
+        .handleSingleTap;
       viewer.clickHandler.handleSingleTap = evt => {
         this.close();
         if (evt.target instanceof HTMLCanvasElement) {
@@ -41,7 +69,7 @@ var circularMenu = class circularMenu {
         defaultSingleTapHandler(evt);
       };
       viewer.clientContainer.addEventListener("DynamicObjectClick",
-        evt => {
+        () => {
           this.close();
           try {
             this.evt.x = event.x;
@@ -53,11 +81,10 @@ var circularMenu = class circularMenu {
           this.evt.data = event;
           this.onEvt("dynamic");
         });
-      viewer.addEventListener(Autodesk.Viewing.ESCAPE_EVENT, e => {
+      viewer.addEventListener(Autodesk.Viewing.ESCAPE_EVENT, () => {
         this.close();
       });
-      viewer.addEventListener(Autodesk.Viewing
-        .AGGREGATE_SELECTION_CHANGED_EVENT,
+      viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT,
         e => {
           try {
             this.evt.x = event.x;
@@ -70,10 +97,9 @@ var circularMenu = class circularMenu {
           this.evt.data = e.selections;
           this.close();
           this.onEvt("selected");
-          // this.onSelectionChange.call(this, e)
         });
     };
-    viewer.addEventListener(window.Autodesk.Viewing.TOOLBAR_CREATED_EVENT, eventListener)
+    viewer.addEventListener(window.Autodesk.Viewing.TOOLBAR_CREATED_EVENT, eventListener);
 
   }
   onEvt(evtFrom) {
@@ -101,48 +127,37 @@ var circularMenu = class circularMenu {
       var y = this.evt.y;
       let dbId = data[0].dbIdArray[0];
       // il faut récupérer les BIMObject selected
-      // let myNode = await window.spinal.BimObjectService();
-      // console.log("hello bimobject");
-      // console.log(data)
-      let bimObj = await window.spinal.BimObjectService.getBIMObject(data[0]
-        .dbIdArray[0],
-        data[0].model);
-        let myNode
-        if (bimObj) {
-          spinal.spinalGraphService._addNode(bimObj);
-          myNode = spinal.spinalGraphService.getNode(bimObj.info.id.get());
-        }
+      let bimObj = await window.spinal.BimObjectService.getBIMObject(data[0].dbIdArray[0], data[0].model);
+      let myNode;
+      if (bimObj instanceof SpinalNode) {
+        window.spinal.spinalGraphService._addNode(bimObj);
+        myNode = window.spinal.spinalGraphService.getNode(bimObj.info.id.get());
+      } else {
+        myNode = bimObj;
+      }
 
-        if (bimObj !== undefined && myNode !== undefined) {
-
-          // let myNode = spinal.spinalGraphService.getNode(bimObj.info.id.get());
+      if (bimObj !== undefined && myNode !== undefined) {
         let objContextMenuService = {
           exist: true,
           selectedNode: myNode,
           dbid: dbId,
           model3d: data[0].model
         };
-       return this.open(
+        return this.open(
           await this.getButtonList(objContextMenuService),
           x,
           y,
           objContextMenuService
         );
-      } 
-        // let myNode = await bimobjService.createBIMObject(data.dbIdArray[0],
-        //   this
-        //   .viewer.model.getData()
-        //   .instanceTree.getNodeName(data
-        //     .dbIdArray[0])
-        // )
-        let objContextMenuService = {
-          exist: false,
-          dbid: dbId,
-          model3d: data[0].model
-        };
+      }
+      let objContextMenuService = {
+        exist: false,
+        dbid: dbId,
+        model3d: data[0].model
+      };
 
-        let btnList = await this.getButtonList(objContextMenuService);
-        this.open(btnList, x, y, objContextMenuService);
+      let btnList = await this.getButtonList(objContextMenuService);
+      this.open(btnList, x, y, objContextMenuService);
     } else if (data.is === "dynamic") {
       let objContextMenuService = {
         exist: true,
@@ -163,7 +178,6 @@ var circularMenu = class circularMenu {
       });
   }
   mount() {
-    // bimobjService.getGraph();
   }
   open(buttonList, x, y, objContextMenuService) {
     if (this.close() == false) {

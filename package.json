@@ -1,6 +1,6 @@
 {
   "name": "spinal-env-viewer-plugin-circular-menu-service",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "circularMenuClass.js",
   "scripts": {
